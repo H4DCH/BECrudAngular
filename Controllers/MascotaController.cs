@@ -14,14 +14,14 @@ namespace BE_CRUDNET.Controllers
         {
             _context = context;
         }
-       
+
         [HttpGet]
-        public async Task<IActionResult> obtenerNOmbres() 
+        public async Task<IActionResult> obtenerNOmbres()
         {
             try
             {
                 var listaMascotas = await _context.Mascotas.ToListAsync();
-                return Ok(listaMascotas);   
+                return Ok(listaMascotas);
 
             }
             catch (Exception e)
@@ -34,7 +34,7 @@ namespace BE_CRUDNET.Controllers
         public async Task<IActionResult> Get(int Id) {
             try
             {
-                var mascota =await _context.Mascotas.FindAsync(Id);
+                var mascota = await _context.Mascotas.FindAsync(Id);
                 if (mascota == null)
                 {
                     return NotFound();
@@ -48,6 +48,75 @@ namespace BE_CRUDNET.Controllers
 
                 return BadRequest(ex);
             }
+        }
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> Delete(int Id)
+        {
+            try
+            {
+                var mascota = await _context.Mascotas.FindAsync(Id);
+                if (mascota == null)
+                {
+                    return NotFound();
+
+                }
+                _context.Mascotas.Remove(mascota);
+                await _context.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex);
+            }
+            return NoContent();
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> Post(Mascota mascota) {
+            try
+            {
+                mascota.fechaCreacion = DateTime.Now;
+                _context.Add(mascota);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("Get", new { id = mascota.Id }, mascota);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex);
+            }
+        }
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> Put(int id,Mascota mascota) 
+        {
+            try
+            {
+                if (id != mascota.Id)
+                {
+                    return BadRequest();
+                }
+                var mascotaItem = await _context.Mascotas.FindAsync(id);
+                if (mascotaItem == null) 
+                {
+                    return NotFound();  
+                
+                }
+                 mascotaItem.Nombre = mascota.Nombre;
+                mascotaItem.Raza = mascota.Raza;
+                mascotaItem.Edad = mascota.Edad;
+                mascotaItem.Peso = mascota.Peso;
+                mascotaItem.Color = mascota.Color;
+
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex);
+            }
+        
         }
     }
 }
