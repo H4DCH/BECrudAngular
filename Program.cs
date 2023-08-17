@@ -1,4 +1,4 @@
-
+using AutoMapper;
 using BE_CRUDNET.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +26,8 @@ namespace BE_CRUDNET
             builder.Services.AddDbContext<Context>(options => {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Conexion"));
             });
-
+                //AUTOMAPPER
+            builder.Services.AddAutoMapper(typeof(Program));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
