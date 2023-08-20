@@ -1,5 +1,7 @@
 using AutoMapper;
 using BE_CRUDNET.Models;
+using BE_CRUDNET.Models.Profiles;
+using BE_CRUDNET.Models.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace BE_CRUDNET
@@ -28,6 +30,11 @@ namespace BE_CRUDNET
             });
                 //AUTOMAPPER
             builder.Services.AddAutoMapper(typeof(Program));
+
+            //Agregado de servicios
+            builder.Services.AddScoped<IMascotaRepository,MascotaRepository>();
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BE_CRUDNET.Models;
 using BE_CRUDNET.Models.DTO;
+using BE_CRUDNET.Models.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,12 +13,13 @@ namespace BE_CRUDNET.Controllers
     [ApiController]
     public class MascotaController : ControllerBase
     {
-        private readonly Context _context;
+        
         private readonly IMapper _mapper;
-        public MascotaController(Context context,IMapper mapper)
+        private readonly IMascotaRepository _repository;
+        public MascotaController(IMapper mapper,IMascotaRepository mascotaRepository)
         {
-            _context = context;
             _mapper = mapper;   
+            _repository = mascotaRepository;
         }
 
         [HttpGet]
@@ -25,7 +27,7 @@ namespace BE_CRUDNET.Controllers
         {
             try
             {
-                var listaMascotas = await _context.Mascotas.ToListAsync();
+                var listaMascotas = await _repository.GetListMascotas();
                 var listMacotasDTO = _mapper.Map<IEnumerable<MascotaDTO>>(listaMascotas);
                 return Ok(listMacotasDTO);
 
@@ -37,10 +39,11 @@ namespace BE_CRUDNET.Controllers
             }
         }
         [HttpGet("{Id}")]
-        public async Task<IActionResult> Get(int Id) {
+        public async Task<IActionResult> Get(int Id)
+        {
             try
             {
-                var mascota = await _context.Mascotas.FindAsync(Id);
+                var mascota = await _repository.GetMascota(Id);
                 if (mascota == null)
                 {
                     return NotFound();
@@ -61,35 +64,35 @@ namespace BE_CRUDNET.Controllers
         {
             try
             {
-                var mascota = await _context.Mascotas.FindAsync(Id);
+                var mascota = await _repository.GetMascota(Id);
                 if (mascota == null)
                 {
                     return NotFound();
 
-                }
-                _context.Mascotas.Remove(mascota);
-                await _context.SaveChangesAsync();
-
+                 }
+                await _repository.DeleteMascota(mascota);
+                return NoContent();
             }
             catch (Exception ex)
             {
 
                 return BadRequest(ex);
             }
-            return NoContent();
+
 
         }
         [HttpPost]
-        public async Task<IActionResult> Post(MascotaDTO mascotaDTO) {
+        public async Task<IActionResult> Post(MascotaDTO mascotaDTO)
+        {
             try
             {
                 var mascota = _mapper.Map<Mascota>(mascotaDTO);
-                
+
                 mascota.fechaCreacion = DateTime.Now;
-                _context.Add(mascota);
-                await _context.SaveChangesAsync();
-                
-                var mascotaItem = _mapper.Map<MascotaDTO>(mascota);  
+
+                mascota = await _repository.addMascota(mascota);
+                 
+                var mascotaItemDTO = _mapper.Map<MascotaDTO>(mascota);
                 return CreatedAtAction("Get", new { id = mascotaDTO.Id }, mascotaDTO);
             }
             catch (Exception ex)
@@ -99,36 +102,30 @@ namespace BE_CRUDNET.Controllers
             }
         }
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Put(int id,MascotaDTO mascotaDTO) 
-        {
+        public async Task<IActionResult> Put(int Id, MascotaDTO mascotaDTO)
+        { 
             try
             {
                 var mascota = _mapper.Map<Mascota>(mascotaDTO);
-                if (id != mascota.Id)
+                if (Id != mascota.Id)
                 {
                     return BadRequest();
                 }
-                var mascotaItem = await _context.Mascotas.FindAsync(id);
-                if (mascotaItem == null) 
-                {
-                    return NotFound();  
-                
-                }
-                 mascotaItem.Nombre = mascota.Nombre;
-                mascotaItem.Raza = mascota.Raza;
-                mascotaItem.Edad = mascota.Edad;
-                mascotaItem.Peso = mascota.Peso;
-                mascotaItem.Color = mascota.Color;
+                var mascotaItem = await _repository.GetMascota(Id);
 
-                await _context.SaveChangesAsync();
+                if (mascotaItem == null)
+                {
+                    return NotFound();
+                }
+                await _repository.UpdateMascota(mascota);
                 return NoContent();
             }
-            catch (Exception ex)
+            catch (NotSupportedException ex)
             {
 
                 return BadRequest(ex);
             }
-        
+
         }
     }
 }

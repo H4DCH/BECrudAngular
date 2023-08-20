@@ -7,7 +7,7 @@ namespace BE_CRUDNET.Models.Profiles
     {
         public MascotaProfile()
         {
-            CreateMap<Mascota, MascotaDTO>().ReverseMap(); 
+            CreateMap<MascotaDTO,Mascota>().ReverseMap();
         }
     }
 }
